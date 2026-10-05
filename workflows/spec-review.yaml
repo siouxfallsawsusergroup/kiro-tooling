@@ -1,0 +1,57 @@
+# Declarative workflow recipe for Kiro IDE, Kiro CLI, and Kiro Web.
+# Enable workflows first (IDE: Workspace Configuration → Workflows, then a new chat;
+# CLI: /settings → Features). This is not a Kiro Crew Python workflow.
+#
+# Agents wf-design and wf-design-reviewer are the names used in
+# https://kiro.dev/docs/workflows/patterns/
+#
+# Try it from the parent chat:
+#   Use the spec-review workflow. task: "add a health check endpoint".
+#   run_dir: ".kiro/workflow-runs/health-check".
+# Pass a run_dir inside the workspace. The recipe writes requirements and a review
+# JSON there and does not implement the feature.
+
+name: spec-review
+inputs:
+  task: prompt
+  run_dir: string
+steps:
+  - type: repeat
+    id: review-loop
+    maxIterations: 3
+    onMaxIterations: abort
+    stopCondition:
+      fileCheck:
+        path: "{{run_dir}}/review.json"
+        jsonPath: verdict
+        value: APPROVED
+    steps:
+      - type: step
+        id: draft
+        agent: wf-design
+        artifacts:
+          requirements: "{{run_dir}}/requirements.md"
+        prompt: >
+          Create {{run_dir}} if it does not exist.
+          Write or revise testable requirements for this task: {{task}}
+          If {{run_dir}}/review.json exists, address every finding in it.
+          Write Markdown to {{run_dir}}/requirements.md using concrete
+          acceptance criteria (EARS-style when you can).
+          Do not implement code, do not commit, and do not change application
+          source. Then call send_message with severity success and a one-line summary.
+
+      - type: step
+        id: review
+        agent: wf-design-reviewer
+        artifacts:
+          review: "{{run_dir}}/review.json"
+        prompt: >
+          Review only the file {{artifacts.requirements}}.
+          Do not read the drafting session.
+          Write {{run_dir}}/review.json with exactly these keys:
+          verdict (string, either APPROVED or REVISE) and
+          findings (array of strings).
+          Use APPROVED only when every acceptance criterion is testable,
+          none contradict each other, and the scope matches: {{task}}
+          Otherwise use REVISE and list what to change.
+          Do not implement code.
