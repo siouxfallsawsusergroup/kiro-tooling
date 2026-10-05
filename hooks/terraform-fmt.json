@@ -1,0 +1,26 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Terraform fmt after save",
+      "description": "Runs terraform fmt -recursive when a .tf file is saved. The command uses sh and skips when terraform is not on PATH. On Windows, replace it with terraform fmt -recursive.",
+      "trigger": "PostFileSave",
+      "matcher": "\\.tf$",
+      "timeout": 60,
+      "action": {
+        "type": "command",
+        "command": "sh -c 'if command -v terraform >/dev/null 2>&1; then terraform fmt -recursive; else echo \"terraform is not on PATH; fmt skipped\"; fi'"
+      }
+    },
+    {
+      "name": "Remind on long-lived keys and admin policies",
+      "description": "When an IAM or SCP file changes, remind the agent to prefer roles and SCPs over long-lived access keys.",
+      "trigger": "PostFileSave",
+      "matcher": "(iam|scp|organizations|policy).*\\.(tf|json|yml|yaml)$",
+      "action": {
+        "type": "agent",
+        "prompt": "A file matching IAM, policy, SCP, or Organizations was just saved. Before you continue, check the diff for long-lived IAM access keys, AdministratorAccess, or Action * on Resource *. If you find one, stop and recommend a role, IAM Identity Center, or an SCP guardrail instead. Do not invent credentials or apply the change."
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aws-account-hygiene",
+  "version": "1.0.0",
+  "description": "AWS account hygiene for Kiro: short-lived credentials, least privilege, and the AWS MCP Server when you are changing IAM or accounts.",
+  "author": {
+    "name": "Sioux Falls AWS User Group",
+    "url": "https://www.siouxfallsawsuser.group/"
+  },
+  "homepage": "https://www.siouxfallsawsuser.group/",
+  "repository": "https://github.com/siouxfallsawsusergroup/kiro-tooling",
+  "keywords": [
+    "aws",
+    "iam",
+    "scp",
+    "organizations",
+    "least-privilege",
+    "access-key",
+    "well-architected",
+    "account"
+  ]
+}
